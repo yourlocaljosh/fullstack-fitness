@@ -90,11 +90,11 @@ def generate_plan():
         carb_g = max(0, round(carb_g))
 
         nutrition_guide = f"""Daily Nutrition Guide:
-- Calories: {daily_calories} kcal
-- Protein: {protein_g}g
-- Carbohydrates: {carb_g}g
-- Fats: {fat_g}g
-"""
+                            - Calories: {daily_calories} calories
+                            - Protein: {protein_g}g
+                            - Carbohydrates: {carb_g}g
+                            - Fats: {fat_g}g
+                            """
 
         # Craft a detailed prompt using all user inputs
         muscle_list = ', '.join(target_muscles) if target_muscles else 'full body'
@@ -102,41 +102,50 @@ def generate_plan():
         equipment = "gym equipment (barbells, machines, etc.)" if location == 'gym' else "minimal home equipment (dumbbells, resistance bands, bodyweight)"
 
         prompt = f"""
-Generate a detailed 7-day workout plan for a fitness app user with the following profile:
-- Gender: {gender}
-- Height: {height_in}" ({height_cm:.0f} cm)
-- Weight: {weight_lbs} lbs ({weight_kg:.0f} kg)
-- Primary Goal: {primary_goal}
-- Days per week available: {days_per_week}
-- Hours per day available: {hours_per_day}
-- User's favorite muscle groups: {muscle_list}
-- Subnote about favorite muscle group: The favorite muscle group should not be the only muscle targetted. Instead,
-if a user has a favorite muscle group, it should be prioritized more often than other muscle groups.
-- Equipment access: {equipment}
-- Cardio preference: {cardio_text}
+            Generate a detailed 7-day workout plan for a fitness app user with the following profile:
+            - Gender: {gender}
+            - Height: {height_in}" ({height_cm:.0f} cm)
+            - Weight: {weight_lbs} lbs ({weight_kg:.0f} kg)
+            - Primary Goal: {primary_goal}
+            - Days per week available: {days_per_week}
+            - Hours per day available: {hours_per_day}
+            - User's favorite muscle groups: {muscle_list}
+            - Equipment access: {equipment}
+            - Cardio preference: {cardio_text}
 
-If the user has an invalid weight or height such as below 3 feet or above 9 feet, or below 30 pounds or above 1000 pounds, assume average values of 5'7" and 160 pounds.
+            STRICT OUTPUT FORMAT - FOLLOW EXACTLY:
+            Monday:
+            - Exercise Name (X sets: X-X reps)
+            - Exercise Name (X sets: X-X reps)
 
-Requirements:
-- Provide a plan for exactly 7 days (Monday to Sunday).
-- Each day should include: workout focus, exercises, sets, reps, and brief instructions.
-- Keep workouts within the user's time limit per day.
-- Use clear, motivational language.
-- Do not include nutrition advice (that's handled separately).
-- Format as plain text with clear day headings (e.g., "Monday: ...").
+            Tuesday:
+            - Exercise Name (X sets: X-X reps)
+            - Exercise Name (X sets: X-X reps)
 
-The formatting should follow this:
-Big Text: First Day of the Week (Monday, tuesday, etc.):
-- Exercise 1 (sets x reps): brief instruction
-- Exercise 2 (sets x reps): brief instruction
-and so on...
+            If you have rest days:
 
-Big Text: Next Day of the Week:
-- Exercise 1 (sets x reps): brief instruction
-- Exercise 2 (sets x reps): brief instruction
+            Wednesday:
+            - Rest Day
 
-And so on until the last day. Do not use asertisks.
-"""
+            [Continue for all 7 days]
+
+            RULES:
+            - Start each day with "DayName:" (e.g., "Monday:")
+            - If the user selects less than 1 hour, choose 2-3 exercises per day.
+            - If the user selects 1-2 hours, choose 4-6 exercises per day.
+            - If the user selects more than 2 hours, choose 6-7 exercises per day.
+            - The user's favorite muscle groups should be prioritized at least twice per week, with either 2-3 exercises dedicated to it on specific days..
+            - Each exercise must start with "- "
+            - Include sets and reps in parentheses like "(4 sets: 8-10 reps)"
+            - NO additional text, descriptions, or explanations
+            - Keep it minimal and clean
+            - Do not include any cardio unless the user has specifically requested it.
+            - Ensure the plan is feasible given the user's time constraints and equipment access.
+            - Ensure the plan is balanced and targets all major muscle groups throughout the week, with emphasis on a favorite if they selected one.
+            - Use common exercise names that are widely recognized.
+            - Ensure proper punctuation and capitalization.
+            - NO days should be empty. For rest days, explicitly write "Rest Day".
+            """
 
         model = genai.GenerativeModel('gemini-2.0-flash-lite')
         response = model.generate_content(prompt)
