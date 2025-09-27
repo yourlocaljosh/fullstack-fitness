@@ -1,34 +1,27 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './styles/App.css';
+import ResultsPage from './ResultsPage';
 
-function App() {
+function HomePage({ onGeneratePlan }) {
   const [formData, setFormData] = useState({
     gender: '',
     height: '',
     weight: '',
-    daysPerWeek: 4,        // ← default to 4 days
-    hoursPerDay: 1,        // ← default to 1 hour
+    daysPerWeek: 4,
+    hoursPerDay: 1,
     primaryGoal: '',
     location: '',
     includeCardio: false,
     targetMuscles: []
   });
 
-  const [routine, setRoutine] = useState('');
-  const [nutrition, setNutrition] = useState('');
-
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (type === 'checkbox') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: checked
-      }));
+      setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
@@ -43,8 +36,7 @@ function App() {
 
       const data = await response.json();
       if (data.success) {
-        setRoutine(data.routine);
-        setNutrition(data.nutrition);
+        onGeneratePlan(data.routine, data.nutrition);
       } else {
         alert('Error generating plan: ' + data.message);
       }
@@ -103,14 +95,14 @@ function App() {
             </label>
 
             <label className="slider-label">
-              Workout Days Per Week: <span className="slider-value">{formData.daysPerWeek || 0}</span>
+              Workout Days Per Week: <span className="slider-value">{formData.daysPerWeek}</span>
               <input
                 type="range"
                 min="1"
                 max="7"
                 step="1"
                 name="daysPerWeek"
-                value={formData.daysPerWeek || 1}
+                value={formData.daysPerWeek}
                 onChange={handleInputChange}
                 className="slider"
               />
@@ -122,14 +114,14 @@ function App() {
             </label>
 
             <label className="slider-label">
-              Hours Per Day: <span className="slider-value">{formData.hoursPerDay ? parseFloat(formData.hoursPerDay).toFixed(2) : '0.00'}</span>
+              Hours Per Day: <span className="slider-value">{parseFloat(formData.hoursPerDay).toFixed(2)}</span>
               <input
                 type="range"
                 min="0.25"
                 max="3"
                 step="0.25"
                 name="hoursPerDay"
-                value={formData.hoursPerDay || 0.25}
+                value={formData.hoursPerDay}
                 onChange={handleInputChange}
                 className="slider"
               />
@@ -152,7 +144,7 @@ function App() {
               Primary Goal:
               <select
                 name="primaryGoal"
-                value={formData.primaryGoal || ''}
+                value={formData.primaryGoal}
                 onChange={handleInputChange}
                 required
               >
@@ -168,7 +160,7 @@ function App() {
               Workout Location:
               <select
                 name="location"
-                value={formData.location || ''}
+                value={formData.location}
                 onChange={handleInputChange}
                 required
               >
@@ -184,7 +176,7 @@ function App() {
                 <input
                   type="checkbox"
                   name="includeCardio"
-                  checked={!!formData.includeCardio}
+                  checked={formData.includeCardio}
                   onChange={(e) => setFormData(prev => ({
                     ...prev,
                     includeCardio: e.target.checked
@@ -198,7 +190,7 @@ function App() {
               Target Muscle Groups:
               <select
                 multiple
-                value={formData.targetMuscles || []}
+                value={formData.targetMuscles}
                 onChange={(e) => {
                   const options = Array.from(e.target.selectedOptions, opt => opt.value);
                   setFormData(prev => ({ ...prev, targetMuscles: options }));
@@ -218,26 +210,32 @@ function App() {
 
           <button type="submit">Generate My Plan</button>
         </form>
-
-        {routine && (
-          <section className="results-section">
-            <h2>Weekly Workout Routine</h2>
-            <pre className="routine">{routine}</pre>
-          </section>
-        )}
-
-        {nutrition && (
-          <section className="results-section">
-            <h2>Daily Nutrition Guide</h2>
-            <pre className="nutrition">{nutrition}</pre>
-          </section>
-        )}
       </main>
 
       <footer>
         <p>Powered by Gemini AI • Built for MHacks 2025</p>
       </footer>
     </div>
+  );
+}
+
+function App() {
+  const [results, setResults] = useState(null);
+
+  const handleGeneratePlan = (routine, nutrition) => {
+    setResults({ routine, nutrition });
+  };
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage onGeneratePlan={handleGeneratePlan} />} />
+        <Route 
+          path="/results" 
+          element={<ResultsPage routine={results?.routine} nutrition={results?.nutrition} />} 
+        />
+      </Routes>
+    </Router>
   );
 }
 
