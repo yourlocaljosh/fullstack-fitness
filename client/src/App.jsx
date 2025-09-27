@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import './styles/App.css';
 import ResultsPage from './ResultsPage';
+
+// Custom hook to manage navigation and state
+const useResults = () => {
+  const [results, setResults] = useState(null);
+  
+  const setResultsAndNavigate = (routine, nutrition) => {
+    setResults({ routine, nutrition });
+  };
+  
+  return { results, setResultsAndNavigate };
+};
 
 function HomePage({ onGeneratePlan }) {
   const [formData, setFormData] = useState({
@@ -16,6 +27,7 @@ function HomePage({ onGeneratePlan }) {
     targetMuscles: []
   });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // ← Add navigation hook
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -28,7 +40,7 @@ function HomePage({ onGeneratePlan }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // ← Start loading
+    setLoading(true);
     try {
       const response = await fetch('http://localhost:8000/api/generate-plan', {
         method: 'POST',
@@ -39,6 +51,7 @@ function HomePage({ onGeneratePlan }) {
       const data = await response.json();
       if (data.success) {
         onGeneratePlan(data.routine, data.nutrition);
+        navigate('/results'); // ← This triggers the navigation!
       } else {
         alert('Error generating plan: ' + data.message);
       }
@@ -46,10 +59,11 @@ function HomePage({ onGeneratePlan }) {
       console.error('Fetch error:', err);
       alert('Network error. Is the backend running?');
     } finally {
-      setLoading(false); // ← Stop loading (even if error)
+      setLoading(false);
     }
   };
 
+  // ... rest of your HomePage component (unchanged) ...
   return (
     <div className="app-container">
       <header>
@@ -234,8 +248,10 @@ function HomePage({ onGeneratePlan }) {
   );
 }
 
+// Main app component that holds state and handles routing
 function AppContent() {
   const [results, setResults] = useState(null);
+  const navigate = useNavigate();
 
   const handleGeneratePlan = (routine, nutrition) => {
     setResults({ routine, nutrition });
@@ -243,10 +259,19 @@ function AppContent() {
 
   return (
     <Routes>
-      <Route path="/" element={<HomePage onGeneratePlan={handleGeneratePlan} />} />
+      <Route 
+        path="/" 
+        element={<HomePage onGeneratePlan={handleGeneratePlan} />} 
+      />
       <Route 
         path="/results" 
-        element={<ResultsPage routine={results?.routine} nutrition={results?.nutrition} />} 
+        element={
+          <ResultsPage 
+            routine={results?.routine} 
+            nutrition={results?.nutrition} 
+            onBack={() => navigate('/')}
+          /> 
+        } 
       />
     </Routes>
   );
