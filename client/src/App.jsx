@@ -15,6 +15,7 @@ function HomePage({ onGeneratePlan }) {
     includeCardio: false,
     targetMuscles: []
   });
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -27,6 +28,7 @@ function HomePage({ onGeneratePlan }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // ← Start loading
     try {
       const response = await fetch('http://localhost:8000/api/generate-plan', {
         method: 'POST',
@@ -43,6 +45,8 @@ function HomePage({ onGeneratePlan }) {
     } catch (err) {
       console.error('Fetch error:', err);
       alert('Network error. Is the backend running?');
+    } finally {
+      setLoading(false); // ← Stop loading (even if error)
     }
   };
 
@@ -69,28 +73,30 @@ function HomePage({ onGeneratePlan }) {
             </label>
 
             <label>
-              Height (cm):
+              Height (in):
               <input
                 type="number"
                 name="height"
                 value={formData.height}
                 onChange={handleInputChange}
                 min="0"
-                max="5000"
+                max="99999"
                 required
+                placeholder="e.g. 70"
               />
             </label>
 
             <label>
-              Weight (kg):
+              Weight (lbs):
               <input
                 type="number"
                 name="weight"
                 value={formData.weight}
                 onChange={handleInputChange}
                 min="0"
-                max="5000"
+                max="99999"
                 required
+                placeholder="e.g. 180"
               />
             </label>
 
@@ -187,7 +193,7 @@ function HomePage({ onGeneratePlan }) {
             </label>
 
             <label className="dropdown-label">
-              Target Muscle Groups:
+              Favorite Muscle Groups:
               <select
                 multiple
                 value={formData.targetMuscles}
@@ -208,7 +214,16 @@ function HomePage({ onGeneratePlan }) {
             </label>
           </section>
 
-          <button type="submit">Generate My Plan</button>
+          <button type="submit" disabled={loading} className="submit-button">
+            {loading ? (
+              <>
+                <span className="spinner"></span>
+                Generating Your Plan...
+              </>
+            ) : (
+              "Generate My Plan"
+            )}
+          </button>
         </form>
       </main>
 
@@ -219,7 +234,7 @@ function HomePage({ onGeneratePlan }) {
   );
 }
 
-function App() {
+function AppContent() {
   const [results, setResults] = useState(null);
 
   const handleGeneratePlan = (routine, nutrition) => {
@@ -227,14 +242,20 @@ function App() {
   };
 
   return (
+    <Routes>
+      <Route path="/" element={<HomePage onGeneratePlan={handleGeneratePlan} />} />
+      <Route 
+        path="/results" 
+        element={<ResultsPage routine={results?.routine} nutrition={results?.nutrition} />} 
+      />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
     <Router>
-      <Routes>
-        <Route path="/" element={<HomePage onGeneratePlan={handleGeneratePlan} />} />
-        <Route 
-          path="/results" 
-          element={<ResultsPage routine={results?.routine} nutrition={results?.nutrition} />} 
-        />
-      </Routes>
+      <AppContent />
     </Router>
   );
 }
