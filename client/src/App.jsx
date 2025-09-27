@@ -27,7 +27,7 @@ function HomePage({ onGeneratePlan }) {
     targetMuscles: []
   });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // ← Add navigation hook
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -36,6 +36,33 @@ function HomePage({ onGeneratePlan }) {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  // Handle Primary Goal selection (single choice)
+  const handlePrimaryGoalSelect = (goal) => {
+    setFormData(prev => ({ ...prev, primaryGoal: goal }));
+  };
+
+  // Handle Location selection (single choice)
+  const handleLocationSelect = (location) => {
+    setFormData(prev => ({ ...prev, location }));
+  };
+
+  // Handle Cardio toggle
+  const handleCardioToggle = () => {
+    setFormData(prev => ({ ...prev, includeCardio: !prev.includeCardio }));
+  };
+
+  // Handle Muscle Groups selection (multi-select)
+  const handleMuscleGroupToggle = (muscle) => {
+    setFormData(prev => {
+      const current = prev.targetMuscles || [];
+      if (current.includes(muscle)) {
+        return { ...prev, targetMuscles: current.filter(m => m !== muscle) };
+      } else {
+        return { ...prev, targetMuscles: [...current, muscle] };
+      }
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -51,7 +78,7 @@ function HomePage({ onGeneratePlan }) {
       const data = await response.json();
       if (data.success) {
         onGeneratePlan(data.routine, data.nutrition);
-        navigate('/results'); // ← This triggers the navigation!
+        navigate('/results');
       } else {
         alert('Error generating plan: ' + data.message);
       }
@@ -63,7 +90,6 @@ function HomePage({ onGeneratePlan }) {
     }
   };
 
-  // ... rest of your HomePage component (unchanged) ...
   return (
     <div className="app-container">
       <header>
@@ -134,25 +160,6 @@ function HomePage({ onGeneratePlan }) {
             </label>
 
             <label className="slider-label">
-              Workout Days Per Week: <span className="slider-value">{formData.daysPerWeek}</span>
-              <input
-                type="range"
-                min="1"
-                max="7"
-                step="1"
-                name="daysPerWeek"
-                value={formData.daysPerWeek}
-                onChange={handleInputChange}
-                className="slider"
-              />
-              <div className="slider-ticks days-ticks">
-                {[1, 2, 3, 4, 5, 6, 7].map(num => (
-                  <span key={num}>{num}</span>
-                ))}
-              </div>
-            </label>
-
-            <label className="slider-label">
               Hours Per Day: <span className="slider-value">{parseFloat(formData.hoursPerDay).toFixed(2)}</span>
               <input
                 type="range"
@@ -165,13 +172,13 @@ function HomePage({ onGeneratePlan }) {
                 className="slider"
               />
               <div className="slider-ticks hours-ticks">
-                <span>0.25</span>
-                <span>0.5</span>
-                <span>1</span>
-                <span>1.5</span>
-                <span>2</span>
-                <span>2.5</span>
-                <span>3</span>
+                <span style={{left: '0%'}}>0.25</span>
+                <span style={{left: '16.66%'}}>0.5</span>
+                <span style={{left: '33.33%'}}>1</span>
+                <span style={{left: '50%'}}>1.5</span>
+                <span style={{left: '66.66%'}}>2</span>
+                <span style={{left: '83.33%'}}>2.5</span>
+                <span style={{left: '100%'}}>3</span>
               </div>
             </label>
           </section>
@@ -179,72 +186,84 @@ function HomePage({ onGeneratePlan }) {
           <section className="goals-section">
             <h2>Preferences</h2>
 
-            <label className="dropdown-label">
-              Primary Goal:
-              <select
-                name="primaryGoal"
-                value={formData.primaryGoal}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">Select Goal</option>
-                <option value="muscle gain">Muscle Gain</option>
-                <option value="fat loss">Fat Loss</option>
-                <option value="improved endurance">Endurance</option>
-                <option value="general fitness">General Fitness</option>
-              </select>
-            </label>
-
-            <label className="dropdown-label">
-              Workout Location:
-              <select
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">Select Location</option>
-                <option value="home">Home (Minimal Equipment)</option>
-                <option value="gym">Gym (Full Equipment)</option>
-              </select>
-            </label>
-
-            <label className="toggle-label">
-              Include Cardio?
-              <div className="toggle-switch">
-                <input
-                  type="checkbox"
-                  name="includeCardio"
-                  checked={formData.includeCardio}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    includeCardio: e.target.checked
-                  }))}
-                />
-                <span className="toggle-slider"></span>
+            {/* Primary Goal - Box Selection */}
+            <div className="selection-group">
+              <h3 className="selection-label">Primary Goal</h3>
+              <div className="box-grid">
+                {[
+                  { value: 'muscle gain', label: '💪 Muscle Gain' },
+                  { value: 'fat loss', label: '🔥 Fat Loss' },
+                  { value: 'improved endurance', label: '🏃 Endurance' },
+                  { value: 'general fitness', label: '🏋️ General Fitness' }
+                ].map((goal) => (
+                  <button
+                    key={goal.value}
+                    type="button"
+                    className={`selection-box ${formData.primaryGoal === goal.value ? 'selected' : ''}`}
+                    onClick={() => handlePrimaryGoalSelect(goal.value)}
+                  >
+                    {goal.label}
+                  </button>
+                ))}
               </div>
-            </label>
+            </div>
 
-            <label className="dropdown-label">
-              Favorite Muscle Groups:
-              <select
-                multiple
-                value={formData.targetMuscles}
-                onChange={(e) => {
-                  const options = Array.from(e.target.selectedOptions, opt => opt.value);
-                  setFormData(prev => ({ ...prev, targetMuscles: options }));
-                }}
-                className="multi-select"
-              >
-                <option value="chest">Chest</option>
-                <option value="back">Back</option>
-                <option value="legs">Legs</option>
-                <option value="shoulders">Shoulders</option>
-                <option value="arms">Arms</option>
-                <option value="core">Core</option>
-                <option value="full body">Full Body</option>
-              </select>
-            </label>
+            {/* Workout Location - Two-Box Switch */}
+            <div className="selection-group">
+              <h3 className="selection-label">Workout Location</h3>
+              <div className="box-pair">
+                <button
+                  type="button"
+                  className={`selection-box ${formData.location === 'home' ? 'selected' : ''}`}
+                  onClick={() => handleLocationSelect('home')}
+                >
+                  🏠 Home
+                </button>
+                <button
+                  type="button"
+                  className={`selection-box ${formData.location === 'gym' ? 'selected' : ''}`}
+                  onClick={() => handleLocationSelect('gym')}
+                >
+                  🏋️ Gym
+                </button>
+              </div>
+            </div>
+
+            {/* Include Cardio - Toggle Switch */}
+            <div className="selection-group">
+              <h3 className="selection-label">Include Cardio?</h3>
+              <div className="cardio-toggle" onClick={handleCardioToggle}>
+                <div className={`toggle-box ${formData.includeCardio ? 'selected-left' : 'selected-right'}`}>
+                  <span className={`toggle-option ${formData.includeCardio ? 'active' : ''}`}>Yes</span>
+                  <span className={`toggle-option ${!formData.includeCardio ? 'active' : ''}`}>No</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Muscle Groups - Grid Selection */}
+            <div className="selection-group">
+              <h3 className="selection-label">Favorite Muscle Groups</h3>
+              <div className="muscle-grid">
+                {[
+                  'chest', 'back', 'legs', 'shoulders', 'arms', 'core', 'full body'
+                ].map((muscle) => (
+                  <button
+                    key={muscle}
+                    type="button"
+                    className={`selection-box muscle-box ${formData.targetMuscles.includes(muscle) ? 'selected' : ''}`}
+                    onClick={() => handleMuscleGroupToggle(muscle)}
+                  >
+                    {muscle === 'chest' && 'pectorals'}
+                    {muscle === 'back' && 'back'}
+                    {muscle === 'legs' && 'legs'}
+                    {muscle === 'shoulders' && 'delts'}
+                    {muscle === 'arms' && 'arms'}
+                    {muscle === 'core' && 'abs'}
+                    {muscle === 'full body' && 'full body'}
+                  </button>
+                ))}
+              </div>
+            </div>
           </section>
 
           <button type="submit" disabled={loading} className="submit-button">

@@ -15,13 +15,18 @@ function ResultsPage({ routine, nutrition }) {
     for (const line of lines) {
       const dayMatch = line.match(/^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
       if (dayMatch) {
-        currentDay = line;
+        currentDay = line.replace(/:$/, '');
         formatted.push(`\n${currentDay}:`);
       } 
-      else if (line.match(/\(\s*\d+\s*sets?:?\s*\d+(-\d+)?\s*reps?\s*\)/i)) {
-        if (currentDay) {
-          formatted.push(`- ${line}`);
+      else if (currentDay && (line.includes('(') && line.includes(')') && /\d/.test(line))) {
+        let exerciseLine = line;
+        if (!exerciseLine.startsWith('- ')) {
+          exerciseLine = `- ${exerciseLine}`;
         }
+        formatted.push(exerciseLine);
+      }
+      else if (currentDay && line.split(' ').length <= 8 && line.length > 10) {
+        formatted.push(`- ${line}`);
       }
     }
     
