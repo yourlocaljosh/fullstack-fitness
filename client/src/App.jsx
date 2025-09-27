@@ -163,22 +163,18 @@ function HomePage({ onGeneratePlan }) {
               Hours Per Day: <span className="slider-value">{parseFloat(formData.hoursPerDay).toFixed(2)}</span>
               <input
                 type="range"
-                min="0.25"
+                min="0.0"
                 max="3"
-                step="0.25"
+                step="0.5"
                 name="hoursPerDay"
                 value={formData.hoursPerDay}
                 onChange={handleInputChange}
                 className="slider"
               />
-              <div className="slider-ticks hours-ticks">
-                <span style={{left: '0%'}}>0.25</span>
-                <span style={{left: '16.66%'}}>0.5</span>
-                <span style={{left: '33.33%'}}>1</span>
-                <span style={{left: '50%'}}>1.5</span>
-                <span style={{left: '66.66%'}}>2</span>
-                <span style={{left: '83.33%'}}>2.5</span>
-                <span style={{left: '100%'}}>3</span>
+              <div className="slider-ticks">
+                {[0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0].map(num => (
+                  <span key={num}>{num}</span>
+                ))}
               </div>
             </label>
           </section>
@@ -186,7 +182,6 @@ function HomePage({ onGeneratePlan }) {
           <section className="goals-section">
             <h2>Preferences</h2>
 
-            {/* Primary Goal - Box Selection */}
             <div className="selection-group">
               <h3 className="selection-label">Primary Goal</h3>
               <div className="box-grid">
@@ -208,7 +203,6 @@ function HomePage({ onGeneratePlan }) {
               </div>
             </div>
 
-            {/* Workout Location - Two-Box Switch */}
             <div className="selection-group">
               <h3 className="selection-label">Workout Location</h3>
               <div className="box-pair">
@@ -229,7 +223,6 @@ function HomePage({ onGeneratePlan }) {
               </div>
             </div>
 
-            {/* Include Cardio - Toggle Switch */}
             <div className="selection-group">
               <h3 className="selection-label">Include Cardio?</h3>
               <div className="cardio-toggle" onClick={handleCardioToggle}>
@@ -240,12 +233,12 @@ function HomePage({ onGeneratePlan }) {
               </div>
             </div>
 
-            {/* Muscle Groups - Grid Selection */}
             <div className="selection-group">
               <h3 className="selection-label">Favorite Muscle Groups</h3>
               <div className="muscle-grid">
                 {[
-                  'chest', 'back', 'legs', 'shoulders', 'arms', 'core', 'full body'
+                  'chest', 'triceps', 'upper back', 'biceps', 'lower back', 
+                  'hamstrings', 'quadriceps', 'calves', 'glutes', 'delts', 'traps', 'abs'
                 ].map((muscle) => (
                   <button
                     key={muscle}
@@ -253,13 +246,7 @@ function HomePage({ onGeneratePlan }) {
                     className={`selection-box muscle-box ${formData.targetMuscles.includes(muscle) ? 'selected' : ''}`}
                     onClick={() => handleMuscleGroupToggle(muscle)}
                   >
-                    {muscle === 'chest' && 'pectorals'}
-                    {muscle === 'back' && 'back'}
-                    {muscle === 'legs' && 'legs'}
-                    {muscle === 'shoulders' && 'delts'}
-                    {muscle === 'arms' && 'arms'}
-                    {muscle === 'core' && 'abs'}
-                    {muscle === 'full body' && 'full body'}
+                    {muscle}
                   </button>
                 ))}
               </div>
