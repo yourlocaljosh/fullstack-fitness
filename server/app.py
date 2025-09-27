@@ -94,7 +94,6 @@ def generate_plan():
 - Protein: {protein_g}g
 - Carbohydrates: {carb_g}g
 - Fats: {fat_g}g
-- Micronutrients: Focus on iron, vitamin D, magnesium, and calcium based on your diet.
 """
 
         # Craft a detailed prompt using all user inputs
@@ -125,6 +124,18 @@ Requirements:
 - Use clear, motivational language.
 - Do not include nutrition advice (that's handled separately).
 - Format as plain text with clear day headings (e.g., "Monday: ...").
+
+The formatting should follow this:
+Big Text: First Day of the Week (Monday, tuesday, etc.):
+- Exercise 1 (sets x reps): brief instruction
+- Exercise 2 (sets x reps): brief instruction
+and so on...
+
+Big Text: Next Day of the Week:
+- Exercise 1 (sets x reps): brief instruction
+- Exercise 2 (sets x reps): brief instruction
+
+And so on until the last day. Do not use asertisks.
 """
 
         model = genai.GenerativeModel('gemini-2.0-flash-lite')
