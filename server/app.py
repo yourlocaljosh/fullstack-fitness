@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 load_dotenv()
 import google.generativeai as genai
 
-
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = Flask(__name__)
@@ -36,10 +35,21 @@ def generate_plan():
             except (TypeError, ValueError):
                 return default
 
-        # Parse data with safety
+        # Parse data with safety (IMPERIAL UNITS FROM FRONTEND)
         gender = data.get('gender', 'other')
-        height_cm = safe_float(data.get('height'), 170)
-        weight_kg = safe_float(data.get('weight'), 70)
+        height_in = safe_float(data.get('height'), 68)    # Default: 5'8" (68 inches)
+        weight_lbs = safe_float(data.get('weight'), 170)  # Default: 170 lbs
+        
+        # Validate and clamp imperial values
+        if height_in < 24 or height_in > 108:  # Below 2ft or above 9ft
+            height_in = 67  # 5'7"
+        if weight_lbs < 30 or weight_lbs > 1000:  # Below 30lbs or above 1000lbs
+            weight_lbs = 160
+        
+        # CONVERT IMPERIAL → METRIC for calculations
+        height_cm = height_in * 2.54
+        weight_kg = weight_lbs * 0.45359237
+
         days_per_week = safe_int(data.get('daysPerWeek'), 3)
         hours_per_day = safe_float(data.get('hoursPerDay'), 1.0)
         primary_goal = data.get('primaryGoal', 'general fitness')
@@ -48,7 +58,6 @@ def generate_plan():
         target_muscles = data.get('targetMuscles') or ['full body']
 
         # CALCULATE DAILY NUTRITION (Macros) USING MIFLIN-ST JOR EQUATION
-        # use default average values
         age = 25
         activity_multiplier = 1.55
 
@@ -88,7 +97,7 @@ def generate_plan():
 - Micronutrients: Focus on iron, vitamin D, magnesium, and calcium based on your diet.
 """
 
-        #Craft a detailed prompt using all user inputs
+        # Craft a detailed prompt using all user inputs
         muscle_list = ', '.join(target_muscles) if target_muscles else 'full body'
         cardio_text = "Include cardio sessions." if include_cardio else "Do not include cardio."
         equipment = "gym equipment (barbells, machines, etc.)" if location == 'gym' else "minimal home equipment (dumbbells, resistance bands, bodyweight)"
@@ -96,8 +105,8 @@ def generate_plan():
         prompt = f"""
 Generate a detailed 7-day workout plan for a fitness app user with the following profile:
 - Gender: {gender}
-- Height: {height_cm} inches
-- Weight: {weight_kg} pounds
+- Height: {height_in}" ({height_cm:.0f} cm)
+- Weight: {weight_lbs} lbs ({weight_kg:.0f} kg)
 - Primary Goal: {primary_goal}
 - Days per week available: {days_per_week}
 - Hours per day available: {hours_per_day}
@@ -107,8 +116,7 @@ if a user has a favorite muscle group, it should be prioritized more often than 
 - Equipment access: {equipment}
 - Cardio preference: {cardio_text}
 
-If the user has an invalid weight and height, such as below 3 feet tall or above 9 feet tall, and
-below 30 pounds or above 1000 pounds, assume average values of 5'7" and 160 pounds.
+If the user has an invalid weight or height such as below 3 feet or above 9 feet, or below 30 pounds or above 1000 pounds, assume average values of 5'7" and 160 pounds.
 
 Requirements:
 - Provide a plan for exactly 7 days (Monday to Sunday).
@@ -119,7 +127,6 @@ Requirements:
 - Format as plain text with clear day headings (e.g., "Monday: ...").
 """
 
-        # Call Gemini API
         model = genai.GenerativeModel('gemini-2.0-flash-lite')
         response = model.generate_content(prompt)
         workout_routine = response.text
@@ -140,5 +147,5 @@ Requirements:
 
 # RUN SERVER
 if __name__ == '__main__':
-    print("FullStack Fitness Backend Starting...")
+    print("🚀 FullStack Fitness Backend Starting...")
     app.run(host='0.0.0.0', port=8000, debug=True)
