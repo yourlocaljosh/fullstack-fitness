@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Run app.py (venv)",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/server/app.py",
+      "console": "integratedTerminal"
+    }
+  ]
+}
