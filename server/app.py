@@ -1,19 +1,16 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # ← Required for React frontend to call this API
-import math
+from flask_cors import CORS
+import os
+from dotenv import load_dotenv
 
-# Initialize Flask app
+load_dotenv()
+import google.generativeai as genai  # ✅ Correct
+
+
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))  # or "GOOGLE_API_KEY" if you renamed it
+
 app = Flask(__name__)
-CORS(app)  # ← Allow requests from http://localhost:3000 (React dev server)
-
-# TODO: Set up your Gemini API key properly
-# Option 1: Use environment variable (recommended)
-#   export GOOGLE_API_KEY="your-api-key"
-# Option 2: Hardcode for hackathon (not for production!)
-#   genai.configure(api_key="your-api-key")
-
-from google import genai
-from google.genai import types
+CORS(app)
 
 # Optional: Initialize client once (if needed)
 # client = genai.Client()
