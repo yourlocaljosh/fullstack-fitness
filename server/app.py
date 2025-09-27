@@ -99,18 +99,18 @@ def generate_plan():
         # Craft a detailed prompt using all user inputs
         muscle_list = ', '.join(target_muscles) if target_muscles else 'full body'
         cardio_text = "Include cardio sessions." if include_cardio else "Do not include cardio."
-        equipment = "gym equipment (barbells, machines, etc.)" if location == 'gym' else "minimal home equipment (dumbbells, resistance bands, bodyweight)"
+        equipment = "gym equipment" if location == 'gym' else "home equipment, prioritizing bodyweight exercises"
 
         prompt = f"""
-            Generate a detailed 7-day workout plan for a fitness app user with the following profile:
+            Generate a detailed workout plan for an individual with the following profile:
             - Gender: {gender}
             - Height: {height_in}" ({height_cm:.0f} cm)
             - Weight: {weight_lbs} lbs ({weight_kg:.0f} kg)
             - Primary Goal: {primary_goal}
-            - Days per week available: {days_per_week}
-            - Hours per day available: {hours_per_day}
+            - Days per week to have a workout: {days_per_week} (other days should be designated as Rest Days)
+            - Hours per working days to spend working out: {hours_per_day}
             - User's favorite muscle groups: {muscle_list}
-            - Equipment access: {equipment}
+            - Home or gym preference: {equipment}
             - Cardio preference: {cardio_text}
 
             STRICT OUTPUT FORMAT - FOLLOW EXACTLY:
@@ -121,8 +121,6 @@ def generate_plan():
             Tuesday:
             - Exercise Name (X sets: X-X reps)
             - Exercise Name (X sets: X-X reps)
-
-            If you have rest days:
 
             Wednesday:
             - Rest Day
@@ -145,6 +143,7 @@ def generate_plan():
             - Use common exercise names that are widely recognized.
             - Ensure proper punctuation and capitalization.
             - NO days should be empty. For rest days, explicitly write "Rest Day".
+            - If the user selects more than 3 favorite muscle groups, only consider the first 3.
             """
 
         model = genai.GenerativeModel('gemini-2.0-flash-lite')
