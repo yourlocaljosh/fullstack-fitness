@@ -44,15 +44,28 @@ def generate_plan():
         # }
 
         # Convert string numbers to float/int
-        gender = data.get('gender')
-        height_cm = float(data.get('height', 0))
-        weight_kg = float(data.get('weight', 0))
-        days_per_week = int(data.get('daysPerWeek', 3))
-        hours_per_day = float(data.get('hoursPerDay', 1.0))
+        def safe_float(val, default=0.0):
+            try:
+                return float(val) if val not in (None, '') else default
+            except (TypeError, ValueError):
+                return default
+
+        def safe_int(val, default=0):
+            try:
+                return int(float(val)) if val not in (None, '') else default
+            except (TypeError, ValueError):
+                return default
+
+        # Parse data with safety
+        gender = data.get('gender', 'other')
+        height_cm = safe_float(data.get('height'), 170)
+        weight_kg = safe_float(data.get('weight'), 70)
+        days_per_week = safe_int(data.get('daysPerWeek'), 3)
+        hours_per_day = safe_float(data.get('hoursPerDay'), 1.0)
         primary_goal = data.get('primaryGoal', 'general fitness')
         location = data.get('location', 'gym')
-        include_cardio = data.get('includeCardio', False)
-        target_muscles = data.get('targetMuscles', ['full body'])
+        include_cardio = bool(data.get('includeCardio', False))
+        target_muscles = data.get('targetMuscles') or ['full body']
 
         # =======================================================================
         # 2️⃣ CALCULATE DAILY NUTRITION (Macros) USING MIFLIN-ST JOR EQUATION
@@ -128,14 +141,8 @@ Requirements:
 
         # Call Gemini API
         # Note: Use `genai.models.generate_content` (not client.models...)
-        response = genai.models.generate_content(
-            model="gemini-2.5-flash",  # ✅ Use "flash" for speed & cost (or "pro" if needed)
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                thinking_config=types.ThinkingConfig(thinking_budget=0)  # Fast response
-            )
-        )
-
+        model = genai.GenerativeModel('gemini-2.0-flash-lite')
+        response = model.generate_content(prompt)
         workout_routine = response.text
 
         # =======================================================================
@@ -159,4 +166,4 @@ Requirements:
 # ===================================================================================
 if __name__ == '__main__':
     print("🚀 FullStack Fitness Backend Starting...")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)
