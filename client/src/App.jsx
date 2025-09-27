@@ -134,6 +134,25 @@ function HomePage({ onGeneratePlan }) {
             </label>
 
             <label className="slider-label">
+              Workout Days Per Week: <span className="slider-value">{formData.daysPerWeek}</span>
+              <input
+                type="range"
+                min="1"
+                max="7"
+                step="1"
+                name="daysPerWeek"
+                value={formData.daysPerWeek}
+                onChange={handleInputChange}
+                className="slider"
+              />
+              <div className="slider-ticks days-ticks">
+                {[1, 2, 3, 4, 5, 6, 7].map(num => (
+                  <span key={num}>{num}</span>
+                ))}
+              </div>
+            </label>
+
+            <label className="slider-label">
               Hours Per Day: <span className="slider-value">{parseFloat(formData.hoursPerDay).toFixed(2)}</span>
               <input
                 type="range"
@@ -145,7 +164,7 @@ function HomePage({ onGeneratePlan }) {
                 onChange={handleInputChange}
                 className="slider"
               />
-              <div className="slider-ticks">
+              <div className="slider-ticks hours-ticks">
                 <span>0.25</span>
                 <span>0.5</span>
                 <span>1</span>

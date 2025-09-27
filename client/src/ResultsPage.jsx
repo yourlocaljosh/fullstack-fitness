@@ -3,28 +3,42 @@ import './styles/App.css';
 
 function ResultsPage({ routine, nutrition }) {
   if (!routine || !nutrition) {
-    // Redirect to home if no data (user navigated directly)
     window.location.href = '/';
     return null;
   }
 
-  // Clean up Gemini's output (remove extra newlines)
-  const cleanRoutine = routine
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => line !== '')
-    .join('\n');
+  const formatRoutine = (text) => {
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+    const formatted = [];
+    let currentDay = null;
 
+    for (const line of lines) {
+      const dayMatch = line.match(/^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
+      if (dayMatch) {
+        currentDay = line;
+        formatted.push(`\n${currentDay}:`);
+      } 
+      else if (line.match(/\(\s*\d+\s*sets?:?\s*\d+(-\d+)?\s*reps?\s*\)/i)) {
+        if (currentDay) {
+          formatted.push(`- ${line}`);
+        }
+      }
+    }
+    
+    return formatted.join('\n').trim();
+  };
+
+  const cleanRoutine = formatRoutine(routine);
   const cleanNutrition = nutrition
     .split('\n')
     .map(line => line.trim())
-    .filter(line => line !== '')
+    .filter(line => line && !line.includes('Daily Nutrition Guide:'))
     .join('\n');
 
   return (
     <div className="results-container">
       <header className="results-header">
-        <h1>Your Personalized Plan</h1>
+        <h1>💪 Your Personalized Plan</h1>
         <button 
           onClick={() => window.history.back()} 
           className="back-button"
@@ -37,34 +51,20 @@ function ResultsPage({ routine, nutrition }) {
         <section className="workout-section">
           <h2>📅 Weekly Workout Routine</h2>
           <div className="routine-content">
-            {cleanRoutine.split('\n').map((line, i) => {
-              // Style day headers differently
-              if (line.toLowerCase().includes('monday') || 
-                  line.toLowerCase().includes('tuesday') || 
-                  line.toLowerCase().includes('wednesday') || 
-                  line.toLowerCase().includes('thursday') || 
-                  line.toLowerCase().includes('friday') || 
-                  line.toLowerCase().includes('saturday') || 
-                  line.toLowerCase().includes('sunday')) {
-                return <h3 key={i} className="day-header">{line}</h3>;
-              }
-              return <p key={i} className="routine-line">{line}</p>;
-            })}
+            <pre className="formatted-routine">{cleanRoutine}</pre>
           </div>
         </section>
 
         <section className="nutrition-section">
           <h2>🥗 Daily Nutrition Guide</h2>
           <div className="nutrition-content">
-            {cleanNutrition.split('\n').map((line, i) => (
-              <p key={i} className="nutrition-line">{line}</p>
-            ))}
+            <pre className="formatted-nutrition">{cleanNutrition}</pre>
           </div>
         </section>
       </main>
 
       <footer>
-        <p>Powered by Gemini AI • Built for MHacks 2025</p>
+        <p>Powered by 🤖 Gemini AI • Built for MHacks 2025</p>
       </footer>
     </div>
   );
