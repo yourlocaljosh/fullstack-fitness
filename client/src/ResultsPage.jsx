@@ -43,7 +43,7 @@ function ResultsPage({ routine, nutrition }) {
   return (
     <div className="results-container">
       <header className="results-header">
-        <h1>💪 Your Personalized Plan</h1>
+        <h1>Your Personalized Plan</h1>
         <button 
           onClick={() => window.history.back()} 
           className="back-button"

@@ -295,7 +295,7 @@ select, .multi-select {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 0;
+  padding: 1.5rem 2rem;
   margin-bottom: 2rem;
   border-bottom: 2px solid #e2e8f0;
 }
